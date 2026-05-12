@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}Kitoblar{% endblock %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Barcha kitoblar</h2>
+    {% if query %}
+        <p class="text-muted">"{{ query }}" bo'yicha natijalar</p>
+    {% endif %}
+</div>
+
+<!-- Kategoriya filtrlari -->
+<div class="mb-4">
+    <a href="{% url 'book_list' %}" class="btn btn-sm btn-dark me-2">Barchasi</a>
+    {% for category in categories %}
+        <a href="?category={{ category.slug }}"
+           class="btn btn-sm btn-outline-dark me-2 mb-2">
+            {{ category.name }}
+        </a>
+    {% endfor %}
+</div>
+
+<!-- Kitoblar -->
+<div class="row g-4">
+    {% for book in books %}
+    <div class="col-6 col-md-4 col-lg-3">
+        <div class="card book-card shadow-sm">
+            {% if book.cover %}
+                <img src="{{ book.cover.url }}" alt="{{ book.title }}">
+            {% else %}
+                <img src="https://via.placeholder.com/300x400?text=No+Image" alt="Rasm yo'q">
+            {% endif %}
+            <div class="card-body">
+                <h6 class="card-title">{{ book.title }}</h6>
+                <p class="text-muted small">{{ book.author.full_name }}</p>
+                <p class="book-price">{{ book.price }} so'm</p>
+                <a href="{% url 'book_detail' book.slug %}"
+                   class="btn btn-dark btn-sm w-100">Batafsil</a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+        <div class="col-12">
+            <p class="text-center text-muted">Kitob topilmadi 😔</p>
+        </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

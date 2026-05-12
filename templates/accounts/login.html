@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}Kirish{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card shadow">
+            <div class="card-body p-4">
+                <h3 class="text-center mb-4">Kirish</h3>
+                <form method="POST">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button type="submit" class="btn btn-dark w-100 mt-3">
+                        Kirish
+                    </button>
+                </form>
+                <p class="text-center mt-3">
+                    Hisobingiz yo'qmi?
+                    <a href="{% url 'signup' %}">Ro'yxatdan o'tish</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
