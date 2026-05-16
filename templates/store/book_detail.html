@@ -8,7 +8,8 @@
     <!-- Rasm -->
     <div class="col-md-4">
         {% if book.cover %}
-            <img src="{{ book.cover.url }}" class="img-fluid rounded shadow" alt="{{ book.title }}">
+            <img src="{{ book.cover.url }}"
+                 class="img-fluid rounded shadow" alt="{{ book.title }}">
         {% else %}
             <img src="https://via.placeholder.com/400x500?text=No+Image"
                  class="img-fluid rounded" alt="Rasm yo'q">
@@ -17,34 +18,54 @@
 
     <!-- Ma'lumot -->
     <div class="col-md-8">
-        <h2>{{ book.title }}</h2>
+        <div class="d-flex justify-content-between align-items-start">
+            <h2>{{ book.title }}</h2>
+
+            <!-- Sevimli tugma -->
+            {% if user.is_authenticated %}
+                {% with is_fav=user.favorite_set.all %}
+                <a href="{% url 'toggle_favorite' book.id %}"
+                   class="btn btn-outline-danger btn-sm">
+                    <i class="fas fa-heart"></i>
+                    Sevimli
+                </a>
+                {% endwith %}
+            {% endif %}
+        </div>
+
         <p class="text-muted">
             <i class="fas fa-user"></i> {{ book.author.full_name }}
         </p>
+
         {% if book.category %}
-            <span class="badge bg-secondary">{{ book.category.name }}</span>
+            <span class="badge bg-secondary mb-2">
+                {{ book.category.name }}
+            </span>
         {% endif %}
 
         <!-- Reyting -->
         {% if avg_rating %}
-            <p class="mt-2">
+            <p>
                 <i class="fas fa-star text-warning"></i>
-                {{ avg_rating|floatformat:1 }} / 5
-                ({{ reviews.count }} sharh)
+                <strong>{{ avg_rating|floatformat:1 }}</strong> / 5
+                <span class="text-muted">({{ reviews.count }} sharh)</span>
             </p>
         {% endif %}
 
         <h3 class="book-price mt-3">{{ book.price }} so'm</h3>
 
         {% if book.stock > 0 %}
-            <span class="badge bg-success">Mavjud ({{ book.stock }} ta)</span>
+            <span class="badge bg-success mb-3">
+                Mavjud ({{ book.stock }} ta)
+            </span>
         {% else %}
-            <span class="badge bg-danger">Tugagan</span>
+            <span class="badge bg-danger mb-3">Tugagan</span>
         {% endif %}
 
-        <div class="mt-3">
+        <!-- Savatchaga -->
+        <div class="mb-4">
             {% if user.is_authenticated and book.stock > 0 %}
-                <a href="#" class="btn btn-dark btn-lg me-2">
+                <a href="#" class="btn btn-dark btn-lg">
                     <i class="fas fa-cart-plus"></i> Savatchaga
                 </a>
             {% elif not user.is_authenticated %}
@@ -54,63 +75,125 @@
             {% endif %}
         </div>
 
-        <div class="mt-4">
-            <h5>Kitob haqida</h5>
-            <p>{{ book.description }}</p>
-        </div>
+        <h5>Kitob haqida</h5>
+        <p>{{ book.description }}</p>
     </div>
 </div>
 
-<!-- Sharhlar -->
-<div class="mt-5">
-    <h4>Sharhlar ({{ reviews.count }})</h4>
-    <hr>
-    {% for review in reviews %}
-    <div class="card mb-3">
-        <div class="card-body">
-            <div class="d-flex justify-content-between">
-                <strong>{{ review.user.username }}</strong>
-                <span class="text-warning">
-                    {% for i in "12345" %}
-                        {% if forloop.counter <= review.rating %}
-                            <i class="fas fa-star"></i>
-                        {% else %}
-                            <i class="far fa-star"></i>
-                        {% endif %}
-                    {% endfor %}
-                </span>
+<!-- SHARHLAR -->
+<div class="row mt-5">
+    <div class="col-md-8">
+        <h4>Sharhlar
+            <span class="badge bg-secondary">{{ reviews.count }}</span>
+        </h4>
+        <hr>
+
+        <!-- Sharh yozish formasi -->
+        {% if user.is_authenticated %}
+            {% if user_review %}
+                <div class="alert alert-info">
+                    <i class="fas fa-check"></i>
+                    Siz bu kitobga allaqachon sharh qoldirdingiz.
+                </div>
+            {% elif review_form %}
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Sharh qoldiring</h5>
+                        <form method="POST">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label class="form-label">Reyting</label>
+                                <div class="d-flex gap-3">
+                                    {% for radio in review_form.rating %}
+                                        <div class="form-check">
+                                            {{ radio.tag }}
+                                            <label class="form-check-label"
+                                                   for="{{ radio.id_for_label }}">
+                                                {{ radio.choice_label }}
+                                            </label>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                {{ review_form.comment.label_tag }}
+                                {{ review_form.comment }}
+                            </div>
+                            <button type="submit" class="btn btn-dark">
+                                Sharh yuborish
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="alert alert-warning">
+                Sharh qoldirish uchun
+                <a href="{% url 'login' %}">kiring</a>.
             </div>
-            <p class="mt-2 mb-0">{{ review.comment }}</p>
-        </div>
-    </div>
-    {% empty %}
-        <p class="text-muted">Hali sharh yo'q.</p>
-    {% endfor %}
-</div>
+        {% endif %}
 
-<!-- O'xshash kitoblar -->
-{% if related_books %}
-<div class="mt-5">
-    <h4>O'xshash kitoblar</h4>
-    <div class="row g-3">
+        <!-- Sharhlar ro'yxati -->
+        {% for review in reviews %}
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <strong>{{ review.user.username }}</strong>
+                    <span class="text-warning">
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= review.rating %}
+                                <i class="fas fa-star"></i>
+                            {% else %}
+                                <i class="far fa-star"></i>
+                            {% endif %}
+                        {% endfor %}
+                    </span>
+                </div>
+                <p class="mb-1">{{ review.comment }}</p>
+                <small class="text-muted">
+                    {{ review.created_at|date:"d.m.Y" }}
+                </small>
+            </div>
+        </div>
+        {% empty %}
+            <p class="text-muted">
+                Hali sharh yo'q. Birinchi bo'lib sharh qoldiring!
+            </p>
+        {% endfor %}
+    </div>
+
+    <!-- O'xshash kitoblar -->
+    <div class="col-md-4">
+        {% if related_books %}
+        <h5>O'xshash kitoblar</h5>
         {% for rbook in related_books %}
-        <div class="col-6 col-md-3">
-            <div class="card book-card">
-                {% if rbook.cover %}
-                    <img src="{{ rbook.cover.url }}" alt="{{ rbook.title }}">
-                {% else %}
-                    <img src="https://via.placeholder.com/300x400" alt="">
-                {% endif %}
-                <div class="card-body">
-                    <h6>{{ rbook.title }}</h6>
-                    <a href="{% url 'book_detail' rbook.slug %}"
-                       class="btn btn-sm btn-outline-dark w-100">Ko'rish</a>
+        <div class="card mb-3">
+            <div class="row g-0">
+                <div class="col-4">
+                    {% if rbook.cover %}
+                        <img src="{{ rbook.cover.url }}"
+                             class="img-fluid rounded-start h-100"
+                             style="object-fit:cover"
+                             alt="{{ rbook.title }}">
+                    {% endif %}
+                </div>
+                <div class="col-8">
+                    <div class="card-body p-2">
+                        <h6 class="card-title small">{{ rbook.title }}</h6>
+                        <p class="book-price small mb-1">
+                            {{ rbook.price }} so'm
+                        </p>
+                        <a href="{% url 'book_detail' rbook.slug %}"
+                           class="btn btn-sm btn-outline-dark">
+                            Ko'rish
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
         {% endfor %}
+        {% endif %}
     </div>
 </div>
-{% endif %}
 
 {% endblock %}

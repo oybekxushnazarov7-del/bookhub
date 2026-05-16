@@ -1,41 +1,104 @@
 {% extends 'base.html' %}
 
-{% block title %}Profil{% endblock %}
+{% block title %}Profil — {{ user.username }}{% endblock %}
 
 {% block content %}
+
 <div class="row">
+    <!-- Chap — profil ma'lumotlari -->
     <div class="col-md-4">
-        <div class="card shadow text-center p-4">
+        <div class="card shadow text-center p-4 mb-4">
+            <!-- Avatar -->
             {% if user.avatar %}
                 <img src="{{ user.avatar.url }}"
-                     class="rounded-circle mb-3"
+                     class="rounded-circle mx-auto d-block mb-3"
                      width="120" height="120"
                      style="object-fit:cover">
             {% else %}
-                <div class="bg-secondary rounded-circle d-inline-flex
-                            align-items-center justify-content-center mb-3"
-                     style="width:120px;height:120px;margin:auto">
+                <div class="bg-secondary rounded-circle d-flex
+                            align-items-center justify-content-center
+                            mx-auto mb-3"
+                     style="width:120px;height:120px">
                     <i class="fas fa-user fa-3x text-white"></i>
                 </div>
             {% endif %}
+
             <h4>{{ user.get_full_name|default:user.username }}</h4>
-            <p class="text-muted">{{ user.email }}</p>
+            <p class="text-muted">@{{ user.username }}</p>
+
             {% if user.bio %}
-                <p>{{ user.bio }}</p>
+                <p class="small">{{ user.bio }}</p>
             {% endif %}
+
+            <a href="{% url 'edit_profile' %}"
+               class="btn btn-outline-dark btn-sm mt-2">
+                <i class="fas fa-edit"></i> Tahrirlash
+            </a>
         </div>
-    </div>
-    <div class="col-md-8">
-        <div class="card shadow p-4">
-            <h5>Ma'lumotlar</h5>
-            <table class="table">
-                <tr><th>Username</th><td>{{ user.username }}</td></tr>
-                <tr><th>Ism</th><td>{{ user.first_name }}</td></tr>
-                <tr><th>Familiya</th><td>{{ user.last_name }}</td></tr>
-                <tr><th>Email</th><td>{{ user.email }}</td></tr>
-                <tr><th>Telefon</th><td>{{ user.phone|default:"Kiritilmagan" }}</td></tr>
+
+        <!-- Ma'lumotlar -->
+        <div class="card shadow p-3">
+            <h6 class="mb-3">Ma'lumotlar</h6>
+            <table class="table table-sm mb-0">
+                <tr>
+                    <th class="text-muted">Email</th>
+                    <td>{{ user.email|default:"—" }}</td>
+                </tr>
+                <tr>
+                    <th class="text-muted">Telefon</th>
+                    <td>{{ user.phone|default:"—" }}</td>
+                </tr>
+                <tr>
+                    <th class="text-muted">A'zo bo'lgan</th>
+                    <td>{{ user.date_joined|date:"d.m.Y" }}</td>
+                </tr>
             </table>
         </div>
     </div>
+
+    <!-- O'ng — sevimlilar -->
+    <div class="col-md-8">
+        <h4 class="mb-3">
+            <i class="fas fa-heart text-danger"></i>
+            Sevimli kitoblarim
+            <span class="badge bg-secondary">
+                {{ favorite_books.count }}
+            </span>
+        </h4>
+
+        {% if favorite_books %}
+        <div class="row g-3">
+            {% for fav in favorite_books %}
+            <div class="col-6 col-md-4">
+                <div class="card book-card shadow-sm">
+                    {% if fav.book.cover %}
+                        <img src="{{ fav.book.cover.url }}"
+                             alt="{{ fav.book.title }}">
+                    {% else %}
+                        <img src="https://via.placeholder.com/300x400"
+                             alt="">
+                    {% endif %}
+                    <div class="card-body p-2">
+                        <h6 class="small">{{ fav.book.title }}</h6>
+                        <a href="{% url 'book_detail' fav.book.slug %}"
+                           class="btn btn-sm btn-outline-dark w-100">
+                            Ko'rish
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+            <div class="text-center py-4 text-muted">
+                <i class="fas fa-heart fa-2x mb-2"></i>
+                <p>Hali sevimli kitob yo'q</p>
+                <a href="{% url 'book_list' %}" class="btn btn-dark btn-sm">
+                    Kitoblarni ko'rish
+                </a>
+            </div>
+        {% endif %}
+    </div>
 </div>
+
 {% endblock %}

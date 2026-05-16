@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}Sevimlilarim{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-4">
+    <i class="fas fa-heart text-danger"></i> Sevimlilarim
+</h2>
+
+<div class="row g-4">
+    {% for fav in favorite_books %}
+    <div class="col-6 col-md-3">
+        <div class="card book-card shadow-sm">
+            {% if fav.book.cover %}
+                <img src="{{ fav.book.cover.url }}" alt="{{ fav.book.title }}">
+            {% else %}
+                <img src="https://via.placeholder.com/300x400?text=No+Image"
+                     alt="Rasm yo'q">
+            {% endif %}
+            <div class="card-body">
+                <h6 class="card-title">{{ fav.book.title }}</h6>
+                <p class="text-muted small">
+                    {{ fav.book.author.full_name }}
+                </p>
+                <p class="book-price">{{ fav.book.price }} so'm</p>
+                <div class="d-flex gap-1">
+                    <a href="{% url 'book_detail' fav.book.slug %}"
+                       class="btn btn-dark btn-sm flex-grow-1">
+                        Ko'rish
+                    </a>
+                    <a href="{% url 'toggle_favorite' fav.book.id %}?next=favorites"
+                       class="btn btn-outline-danger btn-sm">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+        <div class="col-12 text-center py-5">
+            <i class="fas fa-heart fa-3x text-muted mb-3"></i>
+            <p class="text-muted">Hali sevimli kitob yo'q.</p>
+            <a href="{% url 'book_list' %}" class="btn btn-dark">
+                Kitoblarni ko'rish
+            </a>
+        </div>
+    {% endfor %}
+</div>
+
+{% endblock %}
